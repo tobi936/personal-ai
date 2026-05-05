@@ -14,14 +14,25 @@ Dein lokales, privates KI-Gedächtnis. Läuft vollständig auf deinem Gerät.
 git clone https://github.com/tobi936/personal-ai.git
 cd personal-ai
 
-# 2. .env anlegen
-cp .env.example .env
+# 2. .env anlegen (WICHTIG: muss vor dem ersten Start existieren)
+copy .env.example .env
 
-# 3. Starten (lädt Ollama-Modell beim ersten Start automatisch)
+# 3. Starten
+# Beim ersten Start werden llama3.2:3b (~2 GB) + nomic-embed-text (~270 MB) geladen
 docker compose up --build
 ```
 
 Öffne dann: **http://localhost:3000**
+
+> **Hinweis:** Der erste Start dauert 5–10 Minuten je nach Internetverbindung (Modelle werden einmalig heruntergeladen).
+
+## GPU-Support (NVIDIA)
+
+Falls du eine NVIDIA-GPU mit installiertem [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) hast:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+```
 
 ## Am Handy nutzen (PWA)
 

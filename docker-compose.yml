@@ -29,13 +29,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    # GPU-Support: eigene docker-compose.gpu.yml verwenden (siehe README)
 
   ollama-init:
     image: ollama/ollama:latest
@@ -48,7 +42,8 @@ services:
     entrypoint: >
       sh -c "
         sleep 5 &&
-        ollama pull ${OLLAMA_MODEL:-llama3.2:3b}
+        ollama pull ${OLLAMA_MODEL:-llama3.2:3b} &&
+        ollama pull nomic-embed-text
       "
     environment:
       - OLLAMA_HOST=http://ollama:11434
