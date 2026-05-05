@@ -9,24 +9,30 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 _memory: Optional[Memory] = None
 
 
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+
+def _llm_config() -> dict:
+    if ANTHROPIC_API_KEY:
+        return {"provider": "litellm", "config": {"model": "claude-haiku-4-5", "api_key": ANTHROPIC_API_KEY}}
+    if OPENAI_API_KEY:
+        return {"provider": "litellm", "config": {"model": "gpt-4o-mini", "api_key": OPENAI_API_KEY}}
+    return {"provider": "litellm", "config": {"model": f"ollama/{OLLAMA_MODEL}", "ollama_base_url": OLLAMA_HOST}}
+
+
+def _embedder_config() -> dict:
+    if OPENAI_API_KEY:
+        return {"provider": "openai", "config": {"api_key": OPENAI_API_KEY, "model": "text-embedding-ada-002"}}
+    return {"provider": "ollama", "config": {"model": "nomic-embed-text", "ollama_base_url": OLLAMA_HOST}}
+
+
 def get_memory() -> Memory:
     global _memory
     if _memory is None:
         config = {
-            "llm": {
-                "provider": "litellm",
-                "config": {
-                    "model": f"ollama/{OLLAMA_MODEL}",
-                    "ollama_base_url": OLLAMA_HOST,
-                },
-            },
-            "embedder": {
-                "provider": "ollama",
-                "config": {
-                    "model": "nomic-embed-text",
-                    "ollama_base_url": OLLAMA_HOST,
-                },
-            },
+            "llm": _llm_config(),
+            "embedder": _embedder_config(),
             "vector_store": {
                 "provider": "chroma",
                 "config": {
