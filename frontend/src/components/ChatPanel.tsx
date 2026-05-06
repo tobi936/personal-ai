@@ -2,9 +2,9 @@
 import { Message } from "@/lib/types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Brain } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
+import { Sparkles } from "lucide-react";
 
 interface ChatPanelProps {
   messages: Message[];
@@ -27,14 +27,18 @@ export default function ChatPanel({
 
   if (messages.length === 0 && !isStreaming) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-4">
-        <div className="w-14 h-14 rounded-full bg-[#1e1e2e] flex items-center justify-center">
-          <Brain size={24} className="text-[#7c6af7]" />
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-8">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full bg-[#7c6af7]/10 border border-[#7c6af7]/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-[#7c6af7]/20 border border-[#7c6af7]/30 flex items-center justify-center">
+              <div className="w-2 h-2 rounded-full bg-[#7c6af7]/60" />
+            </div>
+          </div>
+          <div className="absolute inset-0 rounded-full animate-ping bg-[#7c6af7]/5" style={{ animationDuration: "3s" }} />
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-[#e2e2f0] mb-1">Dein Second Brain</h2>
-          <p className="text-sm text-[#6b6b8a] max-w-xs">
-            Schreib einen Gedanken, stelle eine Frage oder halte etwas fest. Die KI erinnert sich.
+        <div className="space-y-2">
+          <p className="text-[#4a4a6a] text-sm tracking-wide">
+            Was beschäftigt dich?
           </p>
         </div>
       </div>
@@ -42,72 +46,55 @@ export default function ChatPanel({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={clsx("flex gap-3", msg.role === "user" ? "justify-end" : "justify-start")}
-        >
-          {msg.role === "assistant" && (
-            <div className="w-7 h-7 rounded-full bg-[#1e1e2e] flex items-center justify-center flex-shrink-0 mt-1">
-              <Brain size={13} className="text-[#7c6af7]" />
+    <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="max-w-xl mx-auto space-y-8">
+        {messages.map((msg, i) => (
+          <div key={i} className={clsx("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
+            {msg.role === "user" ? (
+              <p className="text-sm text-[#4a4a6a] text-right max-w-[85%] leading-relaxed whitespace-pre-wrap">
+                {msg.content}
+              </p>
+            ) : (
+              <div className="max-w-[92%]">
+                <div className="prose prose-invert prose-sm text-[#9090b0] leading-relaxed [&>*]:text-[#9090b0] [&_strong]:text-[#b0b0d0] [&_code]:text-[#7c6af7] [&_a]:text-[#7c6af7]">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {isStreaming && (
+          <div className="flex flex-col items-start">
+            <div className="max-w-[92%]">
+              {streamingContent ? (
+                <div className="prose prose-invert prose-sm text-[#9090b0] leading-relaxed [&>*]:text-[#9090b0] [&_strong]:text-[#b0b0d0] [&_code]:text-[#7c6af7]">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
+                </div>
+              ) : (
+                <div className="flex gap-1.5 items-center h-5">
+                  <span className="w-1 h-1 rounded-full bg-[#7c6af7]/40 animate-pulse" />
+                  <span className="w-1 h-1 rounded-full bg-[#7c6af7]/40 animate-pulse" style={{ animationDelay: "0.2s" }} />
+                  <span className="w-1 h-1 rounded-full bg-[#7c6af7]/40 animate-pulse" style={{ animationDelay: "0.4s" }} />
+                </div>
+              )}
             </div>
-          )}
-          <div
-            className={clsx(
-              "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
-              msg.role === "user"
-                ? "bg-[#7c6af7] text-white rounded-tr-sm"
-                : "bg-[#12121a] border border-[#1e1e2e] text-[#e2e2f0] rounded-tl-sm"
-            )}
-          >
-            {msg.role === "assistant" ? (
-              <div className="prose prose-invert text-sm">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-              </div>
-            ) : (
-              <span className="whitespace-pre-wrap">{msg.content}</span>
-            )}
           </div>
-        </div>
-      ))}
+        )}
 
-      {isStreaming && (
-        <div className="flex gap-3 justify-start">
-          <div className="w-7 h-7 rounded-full bg-[#1e1e2e] flex items-center justify-center flex-shrink-0 mt-1">
-            <Brain size={13} className="text-[#7c6af7]" />
+        {relevantMemories.length > 0 && (
+          <div className="flex items-start gap-2 opacity-50">
+            <Sparkles size={11} className="text-[#7c6af7] mt-0.5 flex-shrink-0" />
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+              {relevantMemories.map((m, i) => (
+                <span key={i} className="text-[10px] text-[#5a5a7a] leading-relaxed">{m}</span>
+              ))}
+            </div>
           </div>
-          <div className="max-w-[80%] bg-[#12121a] border border-[#1e1e2e] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-[#e2e2f0]">
-            {streamingContent ? (
-              <div className="prose prose-invert text-sm">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
-              </div>
-            ) : (
-              <span className="inline-flex gap-1 items-center text-[#6b6b8a]">
-                <span className="animate-bounce">●</span>
-                <span className="animate-bounce" style={{ animationDelay: "0.15s" }}>●</span>
-                <span className="animate-bounce" style={{ animationDelay: "0.3s" }}>●</span>
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+        )}
 
-      {relevantMemories.length > 0 && (
-        <div className="mx-auto max-w-lg bg-[#0e0e16] border border-[#1e1e2e] rounded-xl px-4 py-2.5">
-          <p className="text-[10px] text-[#6b6b8a] mb-1.5 uppercase tracking-wider font-medium">Relevante Erinnerungen</p>
-          <ul className="space-y-0.5">
-            {relevantMemories.map((m, i) => (
-              <li key={i} className="text-xs text-[#7c6af7] flex gap-1.5">
-                <span className="text-[#6b6b8a]">•</span>
-                {m}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div ref={bottomRef} />
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 }
